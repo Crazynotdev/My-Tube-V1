@@ -1,4 +1,4 @@
-// Frontend JS pour la UI — communique avec /api/search et /api/stream
+// Frontend JS amélioré : pas d'autoplay sans geste utilisateur, overlay pour indiquer "cliquer pour jouer"
 document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('searchForm');
   const searchInput = document.getElementById('searchInput');
@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerTitle = document.getElementById('playerTitle');
   const downloadBtn = document.getElementById('downloadBtn');
   const closePlayer = document.getElementById('closePlayer');
+  const playOverlay = document.getElementById('playOverlay');
   document.getElementById('year').textContent = new Date().getFullYear();
 
   searchForm.addEventListener('submit', async (e) => {
@@ -55,30 +56,67 @@ document.addEventListener('DOMContentLoaded', () => {
       card.className = 'card';
       const thumbStyle = item.thumbnail ? `style="background-image:url('${item.thumbnail}')" ` : '';
       card.innerHTML = `
-        <div class="card-thumb" ${thumbStyle} aria-hidden="true">♫</div>
+        <div class="card-thumb" ${thumbStyle} aria-hidden="true">
+          <button class="play-btn-card" data-id="${escapeHtml(item.id)}" title="Lecture">▶</button>
+          ${item.duration ? `<div class="duration">${item.duration}</div>` : ''}
+        </div>
         <div class="card-body">
           <h3 class="card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h3>
-          <div class="card-meta">${item.duration || ''}</div>
+          <div class="card-meta">${item.author || ''}</div>
           <div class="card-actions">
-            <button class="btn-cta" data-action="play" data-videoid="${item.id}" data-title="${escapeHtml(item.title)}">Lecture</button>
-            <a class="btn-secondary" data-action="download" href="/api/stream?videoId=${item.id}&download=1">Télécharger</a>
+            <button class="btn-cta" data-action="open" data-videoid="${escapeHtml(item.id)}" data-title="${escapeHtml(item.title)}">Ouvrir</button>
+            <a class="btn-secondary" data-action="download" href="/api/stream?videoId=${encodeURIComponent(item.id)}&download=1">Télécharger</a>
           </div>
         </div>
       `;
-      const playBtn = card.querySelector('[data-action="play"]');
-      playBtn.addEventListener('click', () => openPlayer(item));
+
+      // play from play button on thumbnail (user gesture)
+      const playBtn = card.querySelector('.play-btn-card');
+      playBtn.addEventListener('click', () => openPlayer(item, true));
+
+      const openBtn = card.querySelector('[data-action="open"]');
+      openBtn.addEventListener('click', () => openPlayer(item, false));
+
       resultsGrid.appendChild(card);
     });
   }
 
-  function openPlayer(item){
+  function openPlayer(item, startImmediately=false){
     playerTitle.textContent = item.title || 'Lecture';
     const streamUrl = `/api/stream?videoId=${encodeURIComponent(item.id)}`;
     audioPlayer.src = streamUrl;
-    audioPlayer.play().catch(()=>{ /* autoplay may be blocked by browser */ });
+    audioPlayer.load();
     downloadBtn.href = `/api/stream?videoId=${encodeURIComponent(item.id)}&download=1`;
-    downloadBtn.classList.toggle('hidden', false);
     playerModal.classList.remove('hidden');
+
+    // Ensure overlay exists
+    if (playOverlay) playOverlay.classList.add('hidden');
+
+    // Try to play if user explicitly clicked thumbnail (user gesture) — otherwise show overlay to ask user to click play
+    if (startImmediately) {
+      audioPlayer.play().catch((err)=>{
+        // play blocked — show overlay instructing user to press play
+        console.warn('Autoplay blocked', err);
+        showPlayOverlay();
+      });
+    } else {
+      showPlayOverlay();
+    }
+  }
+
+  function showPlayOverlay(){
+    if (!playOverlay) return;
+    playOverlay.classList.remove('hidden');
+    // remove previous handler
+    playOverlay.onclick = null;
+    playOverlay.onclick = async () => {
+      try {
+        await audioPlayer.play();
+        playOverlay.classList.add('hidden');
+      } catch (e) {
+        console.error('Playback failed', e);
+      }
+    };
   }
 
   closePlayer.addEventListener('click', closeModal);
@@ -89,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     audioPlayer.pause();
     audioPlayer.src = '';
     playerModal.classList.add('hidden');
+    if (playOverlay) playOverlay.classList.add('hidden');
   }
 
   function escapeHtml(str){
