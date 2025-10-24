@@ -7,14 +7,14 @@
   <meta name="description" content="My‑Tube — Cherche des titres, pré‑écoute via YouTube et télécharge l'audio si autorisé." />
   <meta name="theme-color" content="#071125" />
 
-  <!-- Open Graph / Social -->
+  <!-- Open Graph -->
   <meta property="og:title" content="My‑Tube — Recherche & Preview" />
   <meta property="og:description" content="Trouve, pré‑écoute et télécharge (si autorisé) des pistes audio." />
   <meta property="og:image" content="/assets/img/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://your-domain.example/" />
 
-  <!-- Twitter card -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="My‑Tube — Recherche & Preview" />
   <meta name="twitter:description" content="Trouve, pré‑écoute et télécharge (si autorisé) des pistes audio." />
@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Styles -->
+  <!-- Main CSS (replace with your built CSS path) -->
   <link rel="stylesheet" href="/assets/css/styles.css" />
 
   <!-- Structured data -->
@@ -36,114 +36,136 @@
     "url": "https://your-domain.example/"
   }
   </script>
+
+  <style>
+    /* Small inline styles to ensure layout looks ok if CSS missing */
+    :root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .fallback {max-width:900px;margin:48px auto;padding:20px;border-radius:10px;background:#071125;color:#fff}
+    .muted{color:#9aa4b2}
+  </style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Aller au contenu</a>
+  <a class="skip-link" href="#main" style="position:absolute;left:-9999px;top:auto;clip:rect(0 0 0 0)">Aller au contenu</a>
 
-  <header class="site-header" role="banner">
-    <div class="container header-inner">
-      <a class="logo" href="/" aria-label="My-Tube — accueil">My‑Tube</a>
+  <!-- React root: the React app will hydrate/replace this content -->
+  <div id="root">
+    <!-- Fallback static UI (progressive enhancement) -->
+    <main id="main" class="fallback" role="main" aria-live="polite">
+      <h1 style="margin-top:0">My‑Tube</h1>
+      <p class="muted">Recherche, pré‑écoute via YouTube et téléchargement côté serveur (si autorisé).</p>
 
-      <nav class="nav" role="navigation" aria-label="Main navigation">
-        <a class="nav-link" href="#">Accueil</a>
-        <a class="nav-link" href="#">À propos</a>
-        <a class="nav-link" href="#">Contact</a>
-      </nav>
+      <form id="searchForm" class="search-form" role="search" style="display:flex;gap:8px;margin-top:18px">
+        <label for="searchInput" class="visually-hidden">Rechercher</label>
+        <input id="searchInput" name="q" type="search" placeholder="Titre, artiste ou lien YouTube…" required style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit" />
+        <button type="submit" class="btn-primary" style="padding:10px 14px;border-radius:8px;background:#00d1ff;border:none;color:#021529;font-weight:700">Rechercher</button>
+      </form>
 
-      <button class="mobile-menu-btn" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
-        ☰
-      </button>
-    </div>
-
-    <div id="mobileMenu" class="mobile-menu hidden" aria-hidden="true">
-      <a class="nav-link" href="#">Accueil</a>
-      <a class="nav-link" href="#">À propos</a>
-      <a class="nav-link" href="#">Contact</a>
-    </div>
-  </header>
-
-  <main id="main" class="site-main">
-    <section class="hero">
-      <div class="container hero-inner">
-        <div class="hero-intro">
-          <h1 class="hero-title">Trouve, pré‑écoute et récupère tes pistes</h1>
-          <p class="hero-sub">Recherche rapide, pré‑écoute via la preview YouTube et téléchargement côté serveur (si autorisé).</p>
-        </div>
-
-        <form id="searchForm" class="search-form" role="search" aria-label="Recherche de titres">
-          <label for="searchInput" class="visually-hidden">Rechercher</label>
-          <input id="searchInput" type="search" name="q" placeholder="Titre, artiste ou lien YouTube…" aria-label="Rechercher" autocomplete="off" required />
-          <button type="submit" class="btn-primary" aria-label="Rechercher">Rechercher</button>
-        </form>
-
-        <div id="suggestions" class="suggestions" aria-hidden="true"></div>
+      <div id="results" style="margin-top:20px">
+        <p class="muted">Résultats s'afficheront ici après recherche.</p>
       </div>
-    </section>
 
-    <section class="results container" id="results" aria-live="polite" aria-atomic="true">
-      <div id="resultsGrid" class="results-grid" role="list"></div>
-      <div id="noResults" class="no-results hidden" role="status">Aucun résultat — essaie un autre mot‑clé.</div>
-    </section>
-  </main>
+      <p class="muted" style="margin-top:20px;font-size:13px">Remarque : pour pré-écouter, cliquez sur la vignette pour ouvrir la preview YouTube (aucun média ne démarre automatiquement).</p>
+    </main>
+  </div>
 
-  <footer class="site-footer" role="contentinfo">
-    <div class="container footer-inner">
-      <p>© <span id="year"></span> My‑Tube — Respectez les droits d'auteur. <a href="/legal">CGU &amp; DMCA</a></p>
-    </div>
-  </footer>
+  <!-- Modal: preview container (no audio/video present on initial load) -->
+  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="playerTitle" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;z-index:9999">
+    <div class="modal-content" role="document" style="background:#071a2b;border-radius:12px;max-width:900px;width:100%;padding:18px;position:relative">
+      <button id="closePlayer" aria-label="Fermer la preview" style="position:absolute;right:12px;top:12px;border:none;background:transparent;color:#9aa4b2;font-size:18px;cursor:pointer">✕</button>
 
-  <!-- Modal: Preview (YouTube embed) -->
-  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="playerTitle">
-    <div class="modal-content" role="document">
-      <button class="modal-close" id="closePlayer" aria-label="Fermer la preview">✕</button>
+      <h2 id="playerTitle" style="margin:0 0 12px">Preview</h2>
+      <div class="player-wrapper" style="position:relative">
+        <div id="playerContainer" class="player-container" style="width:100%;height:0;padding-bottom:56.25%;position:relative;overflow:hidden"></div>
+        <button id="playOverlay" class="play-overlay hidden" aria-hidden="true" style="display:none;position:absolute;inset:0;border-radius:8px;background:rgba(0,0,0,0.35);font-size:48px;color:#fff;border:none;cursor:pointer">▶</button>
+      </div>
 
-      <div id="playerInfo" class="player-info">
-        <h2 id="playerTitle" class="player-title">Preview</h2>
-
-        <div class="player-wrapper">
-          <div id="playerContainer" class="player-container" aria-live="polite"></div>
-          <button id="playOverlay" class="play-overlay hidden" aria-hidden="true">▶</button>
-        </div>
-
-        <div class="player-actions">
-          <a id="downloadBtn" class="btn-secondary" href="#" role="button">Télécharger</a>
-          <a id="openOnYoutube" class="btn-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir sur YouTube">Ouvrir sur YouTube</a>
-        </div>
+      <div class="player-actions" style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <a id="downloadBtn" class="btn-secondary" href="#" role="button" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);color:#9aa4b2;text-decoration:none">Télécharger</a>
+        <a id="openOnYoutube" class="btn-link" href="#" target="_blank" rel="noopener noreferrer" style="padding:8px 12px;color:#00d1ff;text-decoration:none">Ouvrir sur YouTube</a>
       </div>
     </div>
   </div>
 
   <noscript>
-    <div class="noscript-warning container">
+    <div style="background:#fff3cd;padding:12px;margin:12px;border-radius:8px;max-width:900px;margin-left:auto;margin-right:auto">
       JavaScript est nécessaire pour utiliser la recherche et la preview. Activez JavaScript dans votre navigateur.
     </div>
   </noscript>
 
-  <!-- App script: app.js creates embeds only after user gesture (no autoplay at load) -->
-  <script src="/assets/js/app.js" defer></script>
+  <!-- Register a small safety script that ensures no media auto-plays on load -->
+  <script>
+    // Remove any audio/video elements accidentally present and prevent autoplay
+    (function(){
+      try {
+        window.addEventListener('DOMContentLoaded', function(){
+          const medias = document.querySelectorAll('audio,video');
+          medias.forEach(m => {
+            try { m.pause(); m.removeAttribute('src'); if (m.load) m.load(); } catch(e) {}
+            if (m.parentNode) m.parentNode.removeChild(m);
+          });
+        }, { once: true });
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- React mount script (replace with your built bundle path) -->
+  <!-- Example: <script type="module" src="/react-app/dist/assets/index.js" defer></script> -->
+  <script type="module" src="/react-app/main.js" defer></script>
 
   <script>
-    // UI helpers (mobile menu + footer year); no media created here to avoid autoplay
+    // Small helpers (the React app will normally take over; these are fallback behaviors)
     (function(){
-      document.getElementById('year').textContent = new Date().getFullYear();
-      const menuBtn = document.querySelector('.mobile-menu-btn');
-      const menu = document.getElementById('mobileMenu');
-      if (menuBtn) {
-        menuBtn.addEventListener('click', () => {
-          const open = menuBtn.getAttribute('aria-expanded') === 'true';
-          menuBtn.setAttribute('aria-expanded', String(!open));
-          menu.classList.toggle('hidden');
-          menu.setAttribute('aria-hidden', String(open));
+      // Modal controls for the static fallback (used until React hydrates)
+      const playerModal = document.getElementById('playerModal');
+      const playerContainer = document.getElementById('playerContainer');
+      const closeBtn = document.getElementById('closePlayer');
+      const searchForm = document.getElementById('searchForm');
+      const results = document.getElementById('results');
+
+      function showModal(title, videoId) {
+        document.getElementById('playerTitle').textContent = title || 'Preview';
+        // remove iframe if any
+        playerContainer.innerHTML = '';
+        // create responsive iframe container
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/embed/' + encodeURIComponent(videoId) + '?rel=0&modestbranding=1&iv_load_policy=3';
+        iframe.style.position = 'absolute';
+        iframe.style.top = 0;
+        iframe.style.left = 0;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.setAttribute('frameborder','0');
+        iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        playerContainer.appendChild(iframe);
+
+        // set download & open links
+        document.getElementById('downloadBtn').href = '/api/stream?videoId=' + encodeURIComponent(videoId) + '&download=1';
+        document.getElementById('openOnYoutube').href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId);
+
+        playerModal.style.display = 'flex';
+      }
+
+      function closeModal(){
+        playerContainer.innerHTML = '';
+        playerModal.style.display = 'none';
+      }
+
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      playerModal.addEventListener('click', (e) => { if (e.target === playerModal) closeModal(); });
+
+      // Minimal search fake for fallback (real app should replace)
+      if (searchForm && results) {
+        searchForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const q = (document.getElementById('searchInput').value || '').trim();
+          if (!q) return;
+          results.innerHTML = '<p class="muted">Recherche en cours… (l\'application React prend le relais si elle est chargée)</p>';
         });
       }
 
-      // Extra safety: pause any media elements accidentally present on DOMContentLoaded
-      document.addEventListener('DOMContentLoaded', () => {
-        const medias = document.querySelectorAll('audio,video');
-        medias.forEach(m => {
-          try { m.pause(); m.removeAttribute('src'); m.load && m.load(); } catch(e) { /* ignore */ }
-        });
-      });
+      // expose showModal to global so devs can call it from console if needed
+      window.__mytube_showModal = showModal;
     })();
   </script>
 </body>
