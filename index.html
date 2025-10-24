@@ -3,67 +3,140 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>My-Tube — Rechercher et écouter</title>
-  <meta name="description" content="My-Tube — Recherche et lecture audio/vidéo rapide" />
-  <link rel="icon" href="/assets/img/favicon.png" />
+  <title>My‑Tube — Recherche, preview YouTube et téléchargement</title>
+  <meta name="description" content="My‑Tube — Cherche des titres, pré‑écoute via YouTube et télécharge l'audio si autorisé." />
+  <meta name="theme-color" content="#071125" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="My‑Tube — Recherche & Preview" />
+  <meta property="og:description" content="Trouve, pré‑écoute et télécharge (si autorisé) des pistes audio." />
+  <meta property="og:image" content="/assets/img/og-image.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://your-domain.example/" />
+
+  <!-- Twitter card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="My‑Tube — Recherche & Preview" />
+  <meta name="twitter:description" content="Trouve, pré‑écoute et télécharge (si autorisé) des pistes audio." />
+  <meta name="twitter:image" content="/assets/img/og-image.png" />
+
+  <!-- Fonts (performant) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <!-- JSON-LD basic structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "My-Tube",
+    "url": "https://your-domain.example/"
+  }
+  </script>
 </head>
 <body>
-  <header class="site-header">
+  <a class="skip-link" href="#main">Aller au contenu</a>
+
+  <header class="site-header" role="banner">
     <div class="container header-inner">
-      <a class="logo" href="/">My-Tube</a>
-      <nav class="nav">
-        <a href="#" class="nav-link">Accueil</a>
-        <a href="#" class="nav-link">À propos</a>
-        <a href="#" class="nav-link">Contact</a>
+      <a class="logo" href="/" aria-label="My-Tube — accueil">My‑Tube</a>
+
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="#">Accueil</a>
+        <a class="nav-link" href="#">À propos</a>
+        <a class="nav-link" href="#">Contact</a>
       </nav>
+
+      <button class="mobile-menu-btn" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+        ☰
+      </button>
+    </div>
+
+    <div id="mobileMenu" class="mobile-menu hidden" aria-hidden="true">
+      <a class="nav-link" href="#">Accueil</a>
+      <a class="nav-link" href="#">À propos</a>
+      <a class="nav-link" href="#">Contact</a>
     </div>
   </header>
 
-  <main>
+  <main id="main" class="site-main">
     <section class="hero">
       <div class="container hero-inner">
-        <h1 class="hero-title">Trouve et écoute ta musique préférée</h1>
-        <p class="hero-sub">Recherche rapide — Lecture intégrée — Téléchargement côté serveur</p>
+        <div class="hero-intro">
+          <h1 class="hero-title">Trouve, pré‑écoute et récupère tes pistes</h1>
+          <p class="hero-sub">Recherche rapide, pré‑écoute via la preview YouTube et téléchargement côté serveur (si autorisé).</p>
+        </div>
 
-        <form id="searchForm" class="search-form" aria-label="Recherche">
-          <input id="searchInput" type="search" name="q" placeholder="Tape un titre, artiste ou lien..." aria-label="Rechercher" required />
-          <button type="submit" class="btn-primary" aria-label="Chercher">Rechercher</button>
+        <form id="searchForm" class="search-form" role="search" aria-label="Recherche de titres">
+          <label for="searchInput" class="visually-hidden">Rechercher</label>
+          <input id="searchInput" type="search" name="q" placeholder="Titre, artiste ou lien YouTube…" aria-label="Rechercher" autocomplete="off" required />
+          <button type="submit" class="btn-primary" aria-label="Rechercher">Rechercher</button>
         </form>
 
         <div id="suggestions" class="suggestions" aria-hidden="true"></div>
       </div>
     </section>
 
-    <section class="results container" id="results" aria-live="polite">
-      <div id="resultsGrid" class="results-grid"></div>
-      <div id="noResults" class="no-results hidden">Aucun résultat — essaie un autre mot-clé.</div>
+    <section class="results container" id="results" aria-live="polite" aria-atomic="true">
+      <div id="resultsGrid" class="results-grid" role="list"></div>
+      <div id="noResults" class="no-results hidden" role="status">Aucun résultat — essaie un autre mot‑clé.</div>
     </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer" role="contentinfo">
     <div class="container footer-inner">
-      <p>© <span id="year"></span> My-Tube — Respectez les droits d'auteur.</p>
+      <p>© <span id="year"></span> My‑Tube — Respectez les droits d'auteur. <a href="/legal">CGU &amp; DMCA</a></p>
     </div>
   </footer>
 
-  <!-- Lecteur modal -->
-  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Lecteur audio">
-    <div class="modal-content">
-      <button class="modal-close" id="closePlayer" aria-label="Fermer">✕</button>
+  <!-- Modal: Preview (YouTube embed) -->
+  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="playerTitle">
+    <div class="modal-content" role="document">
+      <button class="modal-close" id="closePlayer" aria-label="Fermer la preview">✕</button>
+
       <div id="playerInfo" class="player-info">
-        <h3 id="playerTitle">Titre</h3>
+        <h2 id="playerTitle" class="player-title">Preview</h2>
+
         <div class="player-wrapper">
-          <audio id="audioPlayer" controls preload="metadata"></audio>
+          <div id="playerContainer" class="player-container" aria-live="polite"></div>
           <button id="playOverlay" class="play-overlay hidden" aria-hidden="true">▶</button>
         </div>
+
         <div class="player-actions">
-          <a id="downloadBtn" class="btn-secondary" href="#" download> Télécharger</a>
+          <a id="downloadBtn" class="btn-secondary" href="#" role="button">Télécharger</a>
+          <button id="openOnYoutube" class="btn-link" aria-label="Ouvrir sur YouTube" title="Ouvrir sur YouTube">Ouvrir sur YouTube</button>
         </div>
       </div>
     </div>
   </div>
 
+  <noscript>
+    <div class="noscript-warning container">
+      JavaScript est nécessaire pour utiliser la recherche et la preview. Activez JavaScript dans votre navigateur.
+    </div>
+  </noscript>
+
+  <!-- App script -->
   <script src="/assets/js/app.js" defer></script>
+
+  <script>
+    // Small inline behavior: mobile menu toggle + footer year
+    (function(){
+      document.getElementById('year').textContent = new Date().getFullYear();
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      const menu = document.getElementById('mobileMenu');
+      if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+          const open = menuBtn.getAttribute('aria-expanded') === 'true';
+          menuBtn.setAttribute('aria-expanded', String(!open));
+          menu.classList.toggle('hidden');
+          menu.setAttribute('aria-hidden', String(open));
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
