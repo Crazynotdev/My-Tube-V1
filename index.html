@@ -20,14 +20,14 @@
   <meta name="twitter:description" content="Trouve, pré‑écoute et télécharge (si autorisé) des pistes audio." />
   <meta name="twitter:image" content="/assets/img/og-image.png" />
 
-  <!-- Fonts (performant) -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="/assets/css/styles.css" />
 
-  <!-- JSON-LD basic structured data -->
+  <!-- Structured data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -107,7 +107,7 @@
 
         <div class="player-actions">
           <a id="downloadBtn" class="btn-secondary" href="#" role="button">Télécharger</a>
-          <button id="openOnYoutube" class="btn-link" aria-label="Ouvrir sur YouTube" title="Ouvrir sur YouTube">Ouvrir sur YouTube</button>
+          <a id="openOnYoutube" class="btn-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir sur YouTube">Ouvrir sur YouTube</a>
         </div>
       </div>
     </div>
@@ -119,11 +119,11 @@
     </div>
   </noscript>
 
-  <!-- App script -->
+  <!-- App script: app.js creates embeds only after user gesture (no autoplay at load) -->
   <script src="/assets/js/app.js" defer></script>
 
   <script>
-    // Small inline behavior: mobile menu toggle + footer year
+    // UI helpers (mobile menu + footer year); no media created here to avoid autoplay
     (function(){
       document.getElementById('year').textContent = new Date().getFullYear();
       const menuBtn = document.querySelector('.mobile-menu-btn');
@@ -136,6 +136,14 @@
           menu.setAttribute('aria-hidden', String(open));
         });
       }
+
+      // Extra safety: pause any media elements accidentally present on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', () => {
+        const medias = document.querySelectorAll('audio,video');
+        medias.forEach(m => {
+          try { m.pause(); m.removeAttribute('src'); m.load && m.load(); } catch(e) { /* ignore */ }
+        });
+      });
     })();
   </script>
 </body>
