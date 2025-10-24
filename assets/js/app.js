@@ -1,16 +1,18 @@
-// Frontend JS amélioré : pas d'autoplay sans geste utilisateur, overlay pour indiquer "cliquer pour jouer"
+// Préview via YouTube embed ; download via /api/stream
 document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('searchForm');
   const searchInput = document.getElementById('searchInput');
   const resultsGrid = document.getElementById('resultsGrid');
   const noResults = document.getElementById('noResults');
   const playerModal = document.getElementById('playerModal');
-  const audioPlayer = document.getElementById('audioPlayer');
+  const playerContainer = document.getElementById('playerContainer');
   const playerTitle = document.getElementById('playerTitle');
   const downloadBtn = document.getElementById('downloadBtn');
   const closePlayer = document.getElementById('closePlayer');
   const playOverlay = document.getElementById('playOverlay');
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  let currentVideoId = null;
 
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -81,41 +83,50 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Creates a YouTube iframe embed; autoplay parameter controls autoplay
+  function buildYouTubeIframe(videoId, autoplay = false){
+    const iframe = document.createElement('iframe');
+    const params = `autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1&iv_load_policy=3`;
+    iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?${params}`;
+    iframe.width = '100%';
+    iframe.height = '360';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+    iframe.setAttribute('allowfullscreen', '');
+    return iframe;
+  }
+
   function openPlayer(item, startImmediately=false){
-    playerTitle.textContent = item.title || 'Lecture';
-    const streamUrl = `/api/stream?videoId=${encodeURIComponent(item.id)}`;
-    audioPlayer.src = streamUrl;
-    audioPlayer.load();
+    currentVideoId = item.id;
+    playerTitle.textContent = item.title || 'Preview';
     downloadBtn.href = `/api/stream?videoId=${encodeURIComponent(item.id)}&download=1`;
+
+    // remove previous iframe if exists
+    playerContainer.innerHTML = '';
+
+    // Create iframe. If user clicked thumbnail (startImmediately=true) autoplay=1; otherwise autoplay=0
+    const iframe = buildYouTubeIframe(item.id, !!startImmediately);
+    playerContainer.appendChild(iframe);
+
     playerModal.classList.remove('hidden');
 
-    // Ensure overlay exists
-    if (playOverlay) playOverlay.classList.add('hidden');
-
-    // Try to play if user explicitly clicked thumbnail (user gesture) — otherwise show overlay to ask user to click play
-    if (startImmediately) {
-      audioPlayer.play().catch((err)=>{
-        // play blocked — show overlay instructing user to press play
-        console.warn('Autoplay blocked', err);
-        showPlayOverlay();
-      });
-    } else {
+    if (!startImmediately) {
+      // show overlay that invites the user to play; clicking it will create an autoplaying iframe (user gesture)
       showPlayOverlay();
+    } else {
+      if (playOverlay) playOverlay.classList.add('hidden');
     }
   }
 
   function showPlayOverlay(){
     if (!playOverlay) return;
     playOverlay.classList.remove('hidden');
-    // remove previous handler
-    playOverlay.onclick = null;
-    playOverlay.onclick = async () => {
-      try {
-        await audioPlayer.play();
-        playOverlay.classList.add('hidden');
-      } catch (e) {
-        console.error('Playback failed', e);
-      }
+    playOverlay.onclick = () => {
+      if (!currentVideoId) return;
+      playerContainer.innerHTML = '';
+      const autoplayIframe = buildYouTubeIframe(currentVideoId, true);
+      playerContainer.appendChild(autoplayIframe);
+      playOverlay.classList.add('hidden');
     };
   }
 
@@ -123,9 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
   playerModal.addEventListener('click', (e) => {
     if (e.target === playerModal) closeModal();
   });
+
   function closeModal(){
-    audioPlayer.pause();
-    audioPlayer.src = '';
+    // remove iframe to stop playback and free resources
+    playerContainer.innerHTML = '';
+    currentVideoId = null;
     playerModal.classList.add('hidden');
     if (playOverlay) playOverlay.classList.add('hidden');
   }
