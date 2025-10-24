@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My-Tube — Rechercher et écouter</title>
+  <meta name="description" content="My-Tube — Recherche et lecture audio/vidéo rapide" />
+  <link rel="icon" href="/assets/img/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="/">My-Tube</a>
+      <nav class="nav">
+        <a href="#" class="nav-link">Accueil</a>
+        <a href="#" class="nav-link">À propos</a>
+        <a href="#" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <h1 class="hero-title">Trouve et écoute ta musique préférée</h1>
+        <p class="hero-sub">Recherche rapide — Lecture intégrée — Téléchargement côté serveur</p>
+
+        <form id="searchForm" class="search-form" aria-label="Recherche">
+          <input id="searchInput" type="search" name="q" placeholder="Tape un titre, artiste ou lien..." aria-label="Rechercher" required />
+          <button type="submit" class="btn-primary" aria-label="Chercher">Rechercher</button>
+        </form>
+
+        <div id="suggestions" class="suggestions" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="results container" id="results" aria-live="polite">
+      <div id="resultsGrid" class="results-grid"></div>
+      <div id="noResults" class="no-results hidden">Aucun résultat — essaie un autre mot-clé.</div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> My-Tube — Respectez les droits d'auteur.</p>
+    </div>
+  </footer>
+
+  <!-- Lecteur modal -->
+  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Lecteur audio">
+    <div class="modal-content">
+      <button class="modal-close" id="closePlayer" aria-label="Fermer">✕</button>
+      <div id="playerInfo" class="player-info">
+        <h3 id="playerTitle">Titre</h3>
+        <audio id="audioPlayer" controls preload="none"></audio>
+        <div class="player-actions">
+          <a id="downloadBtn" class="btn-secondary" href="#" download> Télécharger</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/app.js" defer></script>
+</body>
+</html>
