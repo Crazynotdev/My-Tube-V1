@@ -53,7 +53,10 @@
       <button class="modal-close" id="closePlayer" aria-label="Fermer">✕</button>
       <div id="playerInfo" class="player-info">
         <h3 id="playerTitle">Titre</h3>
-        <audio id="audioPlayer" controls preload="none"></audio>
+        <div class="player-wrapper">
+          <audio id="audioPlayer" controls preload="metadata"></audio>
+          <button id="playOverlay" class="play-overlay hidden" aria-hidden="true">▶</button>
+        </div>
         <div class="player-actions">
           <a id="downloadBtn" class="btn-secondary" href="#" download> Télécharger</a>
         </div>
