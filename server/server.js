@@ -52,11 +52,10 @@ app.get('/api/search', async (req, res) => {
   if (!q) return res.status(400).json({ error: 'Missing query q' });
 
   try {
-    // ytsr options: search and get items
-    const searchResults = await ytsr(q, { limit: 20 });
+    const searchResults = await ytsr(q, { limit: 30 });
     const items = (searchResults.items || [])
       .filter(i => i.type === 'video')
-      .slice(0, 12)
+      .slice(0, 16)
       .map(i => {
         const id = extractVideoId(i.url) || i.id || '';
         return {
@@ -64,6 +63,7 @@ app.get('/api/search', async (req, res) => {
           title: i.title,
           duration: i.duration,
           thumbnail: (i.bestThumbnail && i.bestThumbnail.url) || (i.thumbnails && i.thumbnails[0] && i.thumbnails[0].url) || '',
+          author: i.author && i.author.name ? i.author.name : ''
         };
       });
     res.json(items);
@@ -96,6 +96,11 @@ app.get('/api/stream', async (req, res) => {
     } else {
       // Let browser treat as media stream
       res.setHeader('Accept-Ranges', 'bytes');
+    }
+
+    // If format provides contentLength, expose it to help clients with seeking
+    if (format.contentLength) {
+      res.setHeader('Content-Length', format.contentLength);
     }
 
     // Stream audio using ytdl (audio only)
